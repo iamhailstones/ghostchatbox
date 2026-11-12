@@ -1,0 +1,19 @@
+{
+  "name": "ghost-chat-box",
+  "version": "1.2.0",
+  "private": true,
+  "description": "GHOST CHAT BOX \u2014 dark AI chat powered by Groq.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "groq-sdk": "^0.30.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
