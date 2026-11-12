@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#090909">
+  <meta name="description" content="GHOST CHAT BOX — an intelligent space for difficult questions and deeper conversations.">
+  <title>GHOST CHAT BOX — Dark Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand"><div class="brand-mark"><span></span></div><div><b>GHOST CHAT BOX</b><small>INTELLIGENCE SYSTEM</small></div></div>
+      <button class="new-chat" id="newChat"><span>＋</span> New conversation</button>
+      <div class="side-label">WORKSPACE</div>
+      <button class="nav-item active"><span>◈</span> Conversations</button>
+      <button class="nav-item" id="focusMode"><span>⌘</span> Focus mode</button>
+      <div class="side-label history-label">RECENT THREADS</div>
+      <div class="history" id="history"><div class="empty-history">Your conversations will appear here.</div></div>
+      <div class="sidebar-bottom"><div class="status"><i></i><span id="connectionText">Checking connection</span></div><div class="profile"><div class="avatar">N</div><div><b>GHOST CHAT BOX</b><small>PRIVATE SESSION</small></div><button id="clearAll" title="Clear local conversations">···</button></div></div>
+    </aside>
+    <main class="main">
+      <header class="topbar"><button class="mobile-menu" id="mobileMenu">☰</button><div class="breadcrumb">WORKSPACE <span>/</span> <b>CONVERSATION</b></div><div class="top-right"><span class="secure">● PRIVATE SESSION</span><button class="icon-button" id="themeInfo" title="About privacy">ⓘ</button></div></header>
+      <section class="chat-area" id="chatArea">
+        <div class="welcome" id="welcome">
+          <div class="orb-wrap"><div class="orb-halo"></div><div class="orb"><div class="orb-core"></div><div class="orb-shine"></div></div><div class="orbit orbit-a"></div><div class="orbit orbit-b"></div></div>
+          <div class="eyebrow"><span></span> YOUR PRIVATE INTELLIGENCE SPACE</div>
+          <h1>THINK BEYOND<br><em>THE OBVIOUS.</em></h1>
+          <p class="welcome-copy">A place for difficult questions, deeper analysis, and conversations that don't fit neatly into a box.</p>
+          <div class="prompt-grid">
+            <button class="prompt-card" data-prompt="Explore the psychology behind why people are drawn to dark and unsettling stories."><span>01 / PSYCHOLOGY</span><b>What draws us to darkness?</b><i>↗</i></button>
+            <button class="prompt-card" data-prompt="Let's examine a famous unsolved historical mystery. Separate evidence from speculation."><span>02 / INVESTIGATION</span><b>Examine an unsolved mystery</b><i>↗</i></button>
+            <button class="prompt-card" data-prompt="Give me a challenging philosophical question about consciousness and mortality."><span>03 / PHILOSOPHY</span><b>Challenge how I think</b><i>↗</i></button>
+            <button class="prompt-card" data-prompt="Explain how social engineering works and how people can recognize and defend against it."><span>04 / HUMAN NATURE</span><b>Understand hidden influence</b><i>↗</i></button>
+          </div>
+        </div>
+        <div class="messages" id="messages" aria-live="polite"></div>
+      </section>
+      <footer class="composer-wrap">
+        <div class="mode-row"><span class="mode-caption">RESPONSE MODE</span><div class="mode-select-wrap"><select id="mode"><option>Deep Chat</option><option>Shadow Mode</option><option>Investigation</option><option>Debate</option></select><span>⌄</span></div><span class="mode-hint" id="modeHint">Reason deeply. Speak clearly.</span></div>
+        <form class="composer" id="chatForm"><textarea id="messageInput" rows="1" placeholder="Ask what others hesitate to ask..." maxlength="12000" required></textarea><button class="send" id="sendButton" type="submit" aria-label="Send message"><span>↑</span></button></form>
+        <div class="composer-foot"><span>GHOST CHAT BOX CAN MAKE MISTAKES. VERIFY IMPORTANT INFORMATION.</span><span><kbd>ENTER</kbd> SEND <kbd>SHIFT + ENTER</kbd> NEW LINE</span></div>
+      </footer>
+    </main>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script src="/app.js"></script>
+</body>
+</html>
