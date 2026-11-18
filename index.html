@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+  <meta name="color-scheme" content="dark">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#090909">
   <meta name="description" content="GHOST CHAT BOX — an intelligent space for difficult questions and deeper conversations.">
   <title>GHOST CHAT BOX — Dark Intelligence</title>
@@ -15,7 +19,7 @@
   <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
   <div class="app-shell">
     <aside class="sidebar" id="sidebar">
-      <div class="brand"><div class="brand-mark"><span></span></div><div><b>GHOST CHAT BOX</b><small>INTELLIGENCE SYSTEM</small></div></div>
+      <div class="brand"><div class="brand-mark"><span></span></div><div><b>GHOST CHAT BOX</b><small>INTELLIGENCE SYSTEM</small></div><button class="sidebar-close" id="sidebarClose" type="button" aria-label="Close menu">✕</button></div>
       <button class="new-chat" id="newChat"><span>＋</span> New conversation</button>
       <div class="side-label">WORKSPACE</div>
       <button class="nav-item active"><span>◈</span> Conversations</button>
@@ -24,8 +28,9 @@
       <div class="history" id="history"><div class="empty-history">Your conversations will appear here.</div></div>
       <div class="sidebar-bottom"><div class="status"><i></i><span id="connectionText">Checking connection</span></div><div class="profile"><div class="avatar">N</div><div><b>GHOST CHAT BOX</b><small>PRIVATE SESSION</small></div><button id="clearAll" title="Clear local conversations">···</button></div></div>
     </aside>
+    <div class="scrim" id="scrim"></div>
     <main class="main">
-      <header class="topbar"><button class="mobile-menu" id="mobileMenu">☰</button><div class="breadcrumb">WORKSPACE <span>/</span> <b>CONVERSATION</b></div><div class="top-right"><span class="secure">● PRIVATE SESSION</span><button class="icon-button" id="themeInfo" title="About privacy">ⓘ</button></div></header>
+      <header class="topbar"><button class="mobile-menu" id="mobileMenu" type="button" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false">☰</button><div class="breadcrumb">WORKSPACE <span>/</span> <b>CONVERSATION</b></div><div class="top-right"><span class="secure">● PRIVATE SESSION</span><button class="icon-button" id="themeInfo" type="button" title="About privacy" aria-label="About privacy">ⓘ</button></div></header>
       <section class="chat-area" id="chatArea">
         <div class="welcome" id="welcome">
           <div class="orb-wrap"><div class="orb-halo"></div><div class="orb"><div class="orb-core"></div><div class="orb-shine"></div></div><div class="orbit orbit-a"></div><div class="orbit orbit-b"></div></div>
@@ -42,8 +47,8 @@
         <div class="messages" id="messages" aria-live="polite"></div>
       </section>
       <footer class="composer-wrap">
-        <div class="mode-row"><span class="mode-caption">RESPONSE MODE</span><div class="mode-select-wrap"><select id="mode"><option>Deep Chat</option><option>Shadow Mode</option><option>Investigation</option><option>Debate</option></select><span>⌄</span></div><span class="mode-hint" id="modeHint">Reason deeply. Speak clearly.</span></div>
-        <form class="composer" id="chatForm"><textarea id="messageInput" rows="1" placeholder="Ask what others hesitate to ask..." maxlength="12000" required></textarea><button class="send" id="sendButton" type="submit" aria-label="Send message"><span>↑</span></button></form>
+        <div class="mode-row"><span class="mode-caption">RESPONSE MODE</span><div class="mode-select-wrap"><select id="mode" aria-label="Response mode"><option>Deep Chat</option><option>Shadow Mode</option><option>Investigation</option><option>Debate</option></select><span>⌄</span></div><span class="mode-hint" id="modeHint">Reason deeply. Speak clearly.</span></div>
+        <form class="composer" id="chatForm"><textarea id="messageInput" rows="1" placeholder="Ask what others hesitate to ask..." maxlength="12000" required enterkeyhint="send" autocomplete="off" autocapitalize="sentences" aria-label="Message"></textarea><button class="send" id="sendButton" type="submit" aria-label="Send message"><span>↑</span></button></form>
         <div class="composer-foot"><span>GHOST CHAT BOX CAN MAKE MISTAKES. VERIFY IMPORTANT INFORMATION.</span><span><kbd>ENTER</kbd> SEND <kbd>SHIFT + ENTER</kbd> NEW LINE</span></div>
       </footer>
     </main>
