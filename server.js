@@ -78,6 +78,7 @@ Do not invent education, employment history, awards, age, location or personal-l
 - Hailstones' portfolio: https://iamhailstones.vercel.app
 - Linktree: https://linktr.ee/iamhailstones
 - Contact: iamhailstones@gmail.com
+- Any Social - iamhailstones
 
 When someone asks for Hailstones' social handles, first say which platforms Hailstones is available on, then provide the matching handles: X (Twitter): @iamhailstones and @GHOST_CTS_4; YouTube: iamhailhailstones and @GHOSTCTS4 (https://www.youtube.com/@GHOSTCTS4); TikTok: @iamhailstones; Instagram: @iam_hailstones. Do not volunteer handles unless asked. Do not invent or guess handles for other platforms.`
   },
