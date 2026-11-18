@@ -9,6 +9,37 @@ const form = $("#chatForm");
 const input = $("#messageInput");
 const sendButton = $("#sendButton");
 const mode = $("#mode");
+const chatArea = $("#chatArea");
+const sidebar = $("#sidebar");
+const menuBtn = $("#mobileMenu");
+const finePointer = window.matchMedia("(pointer: fine)").matches;
+
+// ---------- UI helpers (layout only, no change to chat logic) ----------
+function scrollToBottom() {
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function setSidebar(open) {
+  sidebar.classList.toggle("open", open);
+  menuBtn.setAttribute("aria-expanded", String(open));
+  menuBtn.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+}
+
+// Keep the layout the exact size of the visible area, so the composer
+// stays above the on-screen keyboard on phones.
+(function syncViewport() {
+  const vv = window.visualViewport;
+  if (!vv) return;
+  const root = document.documentElement;
+  const sync = () => {
+    root.style.setProperty("--app-h", vv.height + "px");
+    if (window.scrollY || vv.offsetTop) window.scrollTo(0, 0);
+    if (document.activeElement === input) scrollToBottom();
+  };
+  vv.addEventListener("resize", sync);
+  vv.addEventListener("scroll", sync);
+  sync();
+})();
 
 let messages = [];
 let threads = JSON.parse(localStorage.getItem("nocturne_threads") || "[]");
@@ -62,7 +93,7 @@ function loadThread(id) {
   renderMessages();
   welcome.style.display = "none";
   messagesEl.style.display = "block";
-  $("#sidebar").classList.remove("open");
+  setSidebar(false);
 }
 
 function renderMessages() {
@@ -92,7 +123,7 @@ function renderMessages() {
     messagesEl.appendChild(row);
   });
 
-  messagesEl.scrollTop = messagesEl.scrollHeight;
+  scrollToBottom();
 }
 
 function showChat() {
@@ -125,7 +156,7 @@ async function send(text) {
   typing.textContent = "GHOST CHAT BOX IS THINKING…";
 
   messagesEl.appendChild(typing);
-  messagesEl.scrollTop = messagesEl.scrollHeight;
+  scrollToBottom();
 
   try {
     const r = await fetch(`${API_BASE}/api/chat`, {
@@ -181,7 +212,8 @@ async function send(text) {
   } finally {
     busy = false;
     sendButton.disabled = false;
-    input.focus();
+    if (finePointer) input.focus();
+    scrollToBottom();
   }
 }
 
@@ -196,7 +228,7 @@ input.addEventListener("input", () => {
 });
 
 input.addEventListener("keydown", e => {
-  if (e.key === "Enter" && !e.shiftKey) {
+  if (e.key === "Enter" && !e.shiftKey && !e.isComposing) {
     e.preventDefault();
     form.requestSubmit();
   }
@@ -213,7 +245,9 @@ $("#newChat").onclick = () => {
   messagesEl.innerHTML = "";
   messagesEl.style.display = "none";
   welcome.style.display = "block";
-  input.focus();
+  chatArea.scrollTop = 0;
+  setSidebar(false);
+  if (finePointer) input.focus();
 };
 
 $("#clearAll").onclick = () => {
@@ -225,14 +259,21 @@ $("#clearAll").onclick = () => {
   }
 };
 
-$("#mobileMenu").onclick = () => {
-  $("#sidebar").classList.toggle("open");
+menuBtn.onclick = () => {
+  setSidebar(!sidebar.classList.contains("open"));
 };
 
+$("#sidebarClose").onclick = () => setSidebar(false);
+$("#scrim").onclick = () => setSidebar(false);
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") setSidebar(false);
+});
+
 $("#focusMode").onclick = () => {
-  document.body.classList.toggle("focus");
-  $("#sidebar").classList.toggle("open");
-  toast("Use the menu button to return to navigation.");
+  const on = document.body.classList.toggle("focus");
+  setSidebar(false);
+  toast(on ? "Focus mode on. Use the menu button for navigation." : "Focus mode off.");
 };
 
 $("#themeInfo").onclick = () => {
