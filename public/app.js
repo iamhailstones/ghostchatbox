@@ -1,4 +1,79 @@
-
+// Supabase authentication and private account storage.
+const SUPABASE_URL = "https://yvxobnbctiurdlywqolr.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_ojfH3yLoCmKEmzr5i5wKXw_uoxLIyVH";
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+let ghostSession = null;
+let authMode = "login";
+let currentConversationId = null;
+const authGate = document.getElementById("authGate");
+const authForm = document.getElementById("authForm");
+const authNote = document.getElementById("authNote");
+function setAuthMode(next) {
+  authMode = next;
+  document.getElementById("authHeading").textContent = next === "login" ? "WELCOME BACK" : "CREATE YOUR ACCOUNT";
+  document.getElementById("authDescription").textContent = next === "login" ? "Sign in to access your private conversations and personal GHOST memory." : "Create an account to keep your conversations and memories across devices.";
+  document.getElementById("authSubmit").textContent = next === "login" ? "LOG IN" : "CREATE ACCOUNT";
+  document.getElementById("authToggle").textContent = next === "login" ? "CREATE AN ACCOUNT" : "BACK TO LOGIN";
+  document.getElementById("authPassword").autocomplete = next === "login" ? "current-password" : "new-password";
+  authNote.textContent = "";
+}
+document.getElementById("authToggle").addEventListener("click", () => setAuthMode(authMode === "login" ? "signup" : "login"));
+async function apiFetch(path, options = {}) {
+  const session = ghostSession || (await sb.auth.getSession()).data.session;
+  if (!session) throw new Error("Please sign in first.");
+  ghostSession = session;
+  const headers = { ...(options.headers || {}), Authorization: `Bearer ${session.access_token}` };
+  return fetch(`${API_BASE}${path}`, { ...options, headers });
+}
+async function loadCloudHistory() {
+  try {
+    const r = await apiFetch("/api/conversations"); const d = await r.json();
+    if (!r.ok) throw new Error(d.error || "Could not load history");
+    threads = d.conversations || []; renderHistory();
+  } catch (e) { toast(e.message); }
+}
+authForm.addEventListener("submit", async e => {
+  e.preventDefault(); authNote.textContent = "Connecting securely…";
+  const email = document.getElementById("authEmail").value.trim();
+  const password = document.getElementById("authPassword").value;
+  const result = authMode === "login"
+    ? await sb.auth.signInWithPassword({ email, password })
+    : await sb.auth.signUp({ email, password });
+  if (result.error) { authNote.textContent = result.error.message; return; }
+  if (authMode === "signup" && !result.data.session) {
+    authNote.textContent = "Account created. Check your email to confirm, then log in.";
+    setAuthMode("login"); return;
+  }
+  ghostSession = result.data.session;
+  authGate.classList.add("hidden");
+  document.getElementById("accountEmail").textContent = email;
+  await loadCloudHistory();
+});
+document.getElementById("logoutButton").addEventListener("click", async () => {
+  await sb.auth.signOut(); ghostSession = null; currentConversationId = null; messages = []; threads = []; renderMessages(); renderHistory();
+});
+sb.auth.onAuthStateChange((_event, session) => {
+  ghostSession = session;
+  if (session) {
+    authGate.classList.add("hidden");
+    const el = document.getElementById("accountEmail"); if (el) el.textContent = session.user.email || "SIGNED IN";
+    setTimeout(loadCloudHistory, 0);
+  } else {
+    authGate.classList.remove("hidden");
+    const el = document.getElementById("accountEmail"); if (el) el.textContent = "SIGNED OUT";
+  }
+});
+async function ensureCloudConversation(firstText) {
+  if (currentConversationId) return currentConversationId;
+  const r = await apiFetch("/api/conversations", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: firstText.slice(0, 100) || "New conversation" }) });
+  const d = await r.json(); if (!r.ok) throw new Error(d.error || "Could not create conversation");
+  currentConversationId = d.conversation.id; return currentConversationId;
+}
+async function saveCloudMessage(role, content) {
+  const id = await ensureCloudConversation(messages.find(m => m.role === "user")?.content || "New conversation");
+  const r = await apiFetch(`/api/conversations/${id}/messages`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ role, content }) });
+  const d = await r.json(); if (!r.ok) throw new Error(d.error || "Could not save message");
+}
 const API_BASE = "https://ghostchatbox.onrender.com";
 
 const $ = s => document.querySelector(s);
@@ -9,9 +84,40 @@ const form = $("#chatForm");
 const input = $("#messageInput");
 const sendButton = $("#sendButton");
 const mode = $("#mode");
+const chatArea = $("#chatArea");
+const sidebar = $("#sidebar");
+const menuBtn = $("#mobileMenu");
+const finePointer = window.matchMedia("(pointer: fine)").matches;
+
+// ---------- UI helpers (layout only, no change to chat logic) ----------
+function scrollToBottom() {
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function setSidebar(open) {
+  sidebar.classList.toggle("open", open);
+  menuBtn.setAttribute("aria-expanded", String(open));
+  menuBtn.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+}
+
+// Keep the layout the exact size of the visible area, so the composer
+// stays above the on-screen keyboard on phones.
+(function syncViewport() {
+  const vv = window.visualViewport;
+  if (!vv) return;
+  const root = document.documentElement;
+  const sync = () => {
+    root.style.setProperty("--app-h", vv.height + "px");
+    if (window.scrollY || vv.offsetTop) window.scrollTo(0, 0);
+    if (document.activeElement === input) scrollToBottom();
+  };
+  vv.addEventListener("resize", sync);
+  vv.addEventListener("scroll", sync);
+  sync();
+})();
 
 let messages = [];
-let threads = JSON.parse(localStorage.getItem("nocturne_threads") || "[]");
+let threads = [];
 let busy = false;
 
 function toast(text) {
@@ -58,11 +164,12 @@ function loadThread(id) {
   const t = threads.find(x => x.id === id);
   if (!t) return;
 
-  messages = JSON.parse(JSON.stringify(t.messages));
+  currentConversationId = t.id;
+  messages = JSON.parse(JSON.stringify(t.messages || []));
   renderMessages();
   welcome.style.display = "none";
   messagesEl.style.display = "block";
-  $("#sidebar").classList.remove("open");
+  setSidebar(false);
 }
 
 function renderMessages() {
@@ -92,7 +199,7 @@ function renderMessages() {
     messagesEl.appendChild(row);
   });
 
-  messagesEl.scrollTop = messagesEl.scrollHeight;
+  scrollToBottom();
 }
 
 function showChat() {
@@ -106,6 +213,16 @@ async function send(text) {
   if (!text || busy) return;
 
   showChat();
+
+  const rememberMatch = text.match(/^(?:remember(?: that)?|save this(?: memory)?):?\s*(.+)$/i);
+  if (rememberMatch) {
+    try {
+      const mr = await apiFetch("/api/memories", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ content: rememberMatch[1] }) });
+      const md = await mr.json(); if (!mr.ok) throw new Error(md.error || "Could not save memory");
+      messages.push({ role: "user", content: text }, { role: "assistant", content: "I'll keep that in your personal memory." });
+      renderMessages(); input.value = ""; return;
+    } catch (err) { toast(err.message); return; }
+  }
 
   messages.push({
     role: "user",
@@ -125,10 +242,11 @@ async function send(text) {
   typing.textContent = "GHOST CHAT BOX IS THINKING…";
 
   messagesEl.appendChild(typing);
-  messagesEl.scrollTop = messagesEl.scrollHeight;
+  scrollToBottom();
 
   try {
-    const r = await fetch(`${API_BASE}/api/chat`, {
+    await saveCloudMessage("user", text);
+    const r = await apiFetch("/api/chat", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -149,24 +267,12 @@ async function send(text) {
       role: "assistant",
       content: data.reply
     });
+    await saveCloudMessage("assistant", data.reply);
 
     typing.remove();
     renderMessages();
 
-    threads.unshift({
-      id: Date.now(),
-      title: text.slice(0, 48),
-      messages: JSON.parse(JSON.stringify(messages))
-    });
-
-    threads = threads.slice(0, 25);
-
-    localStorage.setItem(
-      "nocturne_threads",
-      JSON.stringify(threads)
-    );
-
-    renderHistory();
+    await loadCloudHistory();
 
   } catch (e) {
     typing.remove();
@@ -181,7 +287,8 @@ async function send(text) {
   } finally {
     busy = false;
     sendButton.disabled = false;
-    input.focus();
+    if (finePointer) input.focus();
+    scrollToBottom();
   }
 }
 
@@ -196,7 +303,7 @@ input.addEventListener("input", () => {
 });
 
 input.addEventListener("keydown", e => {
-  if (e.key === "Enter" && !e.shiftKey) {
+  if (e.key === "Enter" && !e.shiftKey && !e.isComposing) {
     e.preventDefault();
     form.requestSubmit();
   }
@@ -207,36 +314,35 @@ document.querySelectorAll("[data-prompt]").forEach(b => {
 });
 
 $("#newChat").onclick = () => {
-  if (messages.length) saveThread();
-
   messages = [];
+  currentConversationId = null;
   messagesEl.innerHTML = "";
   messagesEl.style.display = "none";
   welcome.style.display = "block";
-  input.focus();
+  chatArea.scrollTop = 0;
+  setSidebar(false);
+  if (finePointer) input.focus();
 };
 
-$("#clearAll").onclick = () => {
-  if (confirm("Clear all saved conversations from this browser?")) {
-    threads = [];
-    localStorage.removeItem("nocturne_threads");
-    renderHistory();
-    toast("Local conversation history cleared.");
-  }
+menuBtn.onclick = () => {
+  setSidebar(!sidebar.classList.contains("open"));
 };
 
-$("#mobileMenu").onclick = () => {
-  $("#sidebar").classList.toggle("open");
-};
+$("#sidebarClose").onclick = () => setSidebar(false);
+$("#scrim").onclick = () => setSidebar(false);
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") setSidebar(false);
+});
 
 $("#focusMode").onclick = () => {
-  document.body.classList.toggle("focus");
-  $("#sidebar").classList.toggle("open");
-  toast("Use the menu button to return to navigation.");
+  const on = document.body.classList.toggle("focus");
+  setSidebar(false);
+  toast(on ? "Focus mode on. Use the menu button for navigation." : "Focus mode off.");
 };
 
 $("#themeInfo").onclick = () => {
-  toast("Chats are stored in this browser. Messages are sent to your configured AI service when you chat.");
+  toast("Your account conversations and saved memories are stored privately with your account.");
 };
 
 mode.onchange = () => {

@@ -29,6 +29,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 </head>
 
@@ -36,6 +37,20 @@
 
   <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
 
+  <section class="auth-gate" id="authGate" aria-label="GHOST CHAT BOX account access">
+    <div class="auth-panel">
+      <div class="auth-art"><img src="/ghost-auth-hero.png" alt="GHOST CHAT BOX"/><div class="auth-art-copy"><b>GHOST CHAT BOX</b><span>YOUR INTELLIGENCE. YOUR SPACE.</span></div></div>
+      <form class="auth-card" id="authForm">
+        <div class="auth-kicker">PRIVATE ACCESS</div><h2 id="authHeading">WELCOME BACK</h2>
+        <p id="authDescription">Sign in to access your private conversations and personal GHOST memory.</p>
+        <label for="authEmail">EMAIL ADDRESS</label><input id="authEmail" type="email" autocomplete="email" required placeholder="you@example.com"/>
+        <label for="authPassword">PASSWORD</label><input id="authPassword" type="password" autocomplete="current-password" minlength="6" required placeholder="Your password"/>
+        <button class="auth-submit" id="authSubmit" type="submit">LOG IN</button>
+        <div class="auth-note" id="authNote" aria-live="polite"></div>
+        <button class="auth-toggle" id="authToggle" type="button">CREATE AN ACCOUNT</button>
+      </form>
+    </div>
+  </section>
   <div class="app-shell">
 
     <aside class="sidebar" id="sidebar">
@@ -54,7 +69,7 @@
 
       <div class="history" id="history"><div class="empty-history">Your conversations will appear here.</div></div>
 
-      <div class="sidebar-bottom"><div class="status"><i></i><span id="connectionText">Checking connection</span></div><div class="profile"><div class="avatar">N</div><div><b>GHOST CHAT BOX</b><small>PRIVATE SESSION</small></div><button id="clearAll" title="Clear local conversations">···</button></div></div>
+      <div class="sidebar-bottom"><div class="status"><i></i><span id="connectionText">Checking connection</span></div><div class="profile"><div class="avatar">N</div><div class="profile-info"><b>GHOST CHAT BOX</b><small id="accountEmail">SIGNED OUT</small></div><button id="logoutButton" title="Log out" type="button">↪</button></div></div>
 
     </aside>
 
