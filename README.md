@@ -1,6 +1,30 @@
-# GHOST CHAT BOX — Supabase login and personal memory
+# GHOST CHAT BOX — accounts, sync and personal memory
 
 This update preserves the existing GHOST CHAT BOX interface and Groq-powered assistant while adding Supabase email/password authentication, private conversation history, and per-user saved memories.
+
+## Sign-in methods (v1.3.0)
+Continue with Google / Apple / GitHub, email + password, forgot password, email verification, secure logout (this device or all devices), and conversations + personal memory synced across devices. Everything is handled by Supabase Auth; the code is ready, but each provider must be switched on in the Supabase dashboard.
+
+### One-time Supabase setup
+1. **Authentication → URL Configuration**
+   - Site URL: your main public URL (e.g. `https://ghostchatbox.onrender.com`).
+   - Redirect URLs: add every origin that serves the app (Render, Vercel, `http://localhost:3000`), each with a trailing `/**`.
+2. **Authentication → Providers** — enable each one and use this callback URL in the provider's console:
+   `https://yvxobnbctiurdlywqolr.supabase.co/auth/v1/callback`
+   - **Google**: Google Cloud Console → OAuth client (Web) → paste Client ID/Secret into Supabase.
+   - **GitHub**: GitHub → Settings → Developer settings → OAuth Apps → paste Client ID/Secret.
+   - **Apple**: needs an Apple Developer account. Create a Services ID, a Sign in with Apple key, then generate the client secret (a JWT) and paste it into Supabase. Apple secrets expire (max 6 months), so set a reminder to renew.
+3. **Authentication → Providers → Email**: turn on **Confirm email**. Optional: raise the minimum password length to 8.
+4. **Authentication → SMTP Settings**: configure your own SMTP (Resend, Postmark, etc.). Supabase's built-in mailer is heavily rate-limited and only for testing.
+5. **Authentication → Email Templates**: customise the Confirm signup and Reset password emails if you like (keep the `{{ .ConfirmationURL }}` link).
+
+### How it behaves
+- Unverified email accounts cannot use the app; the server also rejects their API calls (403 `email_unverified`).
+- Password reset and verification links use PKCE: open them in the same browser you requested them from. If a link fails, request a new one.
+- After a password reset, all other sessions are signed out.
+- Logout clears local state on the device. "Log out of all devices" revokes every session.
+- The Personal memory panel (sidebar) lists, adds and deletes memories; typing `remember ...` in chat also saves one.
+- `/api/chat` still works without a login for backwards compatibility; saved conversations and memories always require a verified account.
 
 ## Existing services
 - Frontend/backend domain: `https://ghostchatbox.onrender.com`

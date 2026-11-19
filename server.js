@@ -67,7 +67,7 @@
  
 
 
-const SERVER_VERSION = "2.1.0";
+const SERVER_VERSION = "2.2.0";
 
 
  
@@ -1733,7 +1733,7 @@ async function main() {
     res.setHeader("Access-Control-Allow-Origin", "*");
 
 
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
 
 
     res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
@@ -1778,19 +1778,37 @@ async function main() {
     ? createClient(supabaseUrl, supabaseSecret, { auth: { persistSession: false, autoRefreshToken: false } })
     : null;
 
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+  // Verifies the Supabase access token. Returns { user } or { status, error, code }.
+  async function verifyBearer(req) {
+    if (!supabaseAdmin) return { status: 503, error: "Account storage is not configured on the server." };
+    const auth = req.headers.authorization || "";
+    const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
+    if (!token) return { status: 401, error: "Please sign in first." };
+    const { data, error } = await supabaseAdmin.auth.getUser(token);
+    if (error || !data?.user) return { status: 401, error: "Your session is invalid or expired. Please sign in again." };
+    // Email/password accounts must verify their email; OAuth providers arrive already confirmed.
+    if (!(data.user.email_confirmed_at || data.user.confirmed_at)) {
+      return { status: 403, error: "Please verify your email address to continue.", code: "email_unverified" };
+    }
+    return { user: data.user };
+  }
+
   async function requireUser(req, res, next) {
     try {
-      if (!supabaseAdmin) return res.status(503).json({ error: "Account storage is not configured on the server." });
-      const auth = req.headers.authorization || "";
-      const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
-      if (!token) return res.status(401).json({ error: "Please sign in first." });
-      const { data, error } = await supabaseAdmin.auth.getUser(token);
-      if (error || !data?.user) return res.status(401).json({ error: "Your session is invalid or expired. Please sign in again." });
-      req.ghostUser = data.user;
+      const v = await verifyBearer(req);
+      if (v.error) return res.status(v.status).json({ error: v.error, code: v.code });
+      req.ghostUser = v.user;
       next();
     } catch (e) {
       return res.status(401).json({ error: "Unable to verify your session." });
     }
+  }
+
+  function requireUuidParam(req, res, next) {
+    if (!UUID_RE.test(String(req.params.id || ""))) return res.status(404).json({ error: "Not found." });
+    next();
   }
 
   app.get("/api/account", requireUser, (req, res) => {
@@ -1800,10 +1818,7 @@ async function main() {
   app.get("/api/conversations", requireUser, async (req, res) => {
     const { data, error } = await supabaseAdmin.from("conversations").select("id,title,created_at").eq("user_id", req.ghostUser.id).order("created_at", { ascending: false }).limit(50);
     if (error) return res.status(500).json({ error: "Could not load conversations." });
-    const conversations = await Promise.all((data || []).map(async c => {
-      const { data: msgs } = await supabaseAdmin.from("messages").select("role,content").eq("conversation_id", c.id).eq("user_id", req.ghostUser.id).order("created_at", { ascending: true }).limit(500);
-      return { ...c, messages: msgs || [] };
-    }));
+    const conversations = data || [];
     res.json({ conversations });
   });
 
@@ -1814,13 +1829,13 @@ async function main() {
     res.json({ conversation: data });
   });
 
-  app.get("/api/conversations/:id/messages", requireUser, async (req, res) => {
+  app.get("/api/conversations/:id/messages", requireUser, requireUuidParam, async (req, res) => {
     const { data, error } = await supabaseAdmin.from("messages").select("id,role,content,created_at").eq("user_id", req.ghostUser.id).eq("conversation_id", req.params.id).order("created_at", { ascending: true }).limit(500);
     if (error) return res.status(500).json({ error: "Could not load messages." });
     res.json({ messages: data || [] });
   });
 
-  app.post("/api/conversations/:id/messages", requireUser, async (req, res) => {
+  app.post("/api/conversations/:id/messages", requireUser, requireUuidParam, async (req, res) => {
     const role = req.body?.role;
     const content = typeof req.body?.content === "string" ? req.body.content.slice(0, 12000) : "";
     if (!content || !["user", "assistant"].includes(role)) return res.status(400).json({ error: "Invalid message." });
@@ -1845,7 +1860,7 @@ async function main() {
     res.json({ memory: data });
   });
 
-  app.delete("/api/memories/:id", requireUser, async (req, res) => {
+  app.delete("/api/memories/:id", requireUser, requireUuidParam, async (req, res) => {
     const { error } = await supabaseAdmin.from("memories").delete().eq("id", req.params.id).eq("user_id", req.ghostUser.id);
     if (error) return res.status(500).json({ error: "Could not delete memory." });
     res.json({ ok: true });
@@ -2102,18 +2117,12 @@ async function main() {
       // Attach the signed-in user's saved memories to the AI context only.
       let userMemories = [];
       if (supabaseAdmin) {
-        const authHeader = req.headers.authorization || "";
-        const bearer = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
-        if (bearer) {
-          const { data: authData } = await supabaseAdmin.auth.getUser(bearer);
-          if (authData?.user) {
-            const { data: saved } = await supabaseAdmin.from("memories").select("content").eq("user_id", authData.user.id).order("updated_at", { ascending: false }).limit(30);
-            userMemories = (saved || []).map(x => x.content);
-          }
+        const v = await verifyBearer(req).catch(() => ({}));
+        if (v.user) {
+          const { data: saved } = await supabaseAdmin.from("memories").select("content").eq("user_id", v.user.id).order("updated_at", { ascending: false }).limit(30);
+          userMemories = (saved || []).map(x => x.content);
         }
       }
-
-
       const hasInput = Array.isArray(body.messages) ? body.messages.length > 0 : typeof body.message === "string";
 
 

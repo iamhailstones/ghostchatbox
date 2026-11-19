@@ -40,15 +40,44 @@
   <section class="auth-gate" id="authGate" aria-label="GHOST CHAT BOX account access">
     <div class="auth-panel">
       <div class="auth-art"><img src="/ghost-auth-hero.png" alt="GHOST CHAT BOX"/><div class="auth-art-copy"><b>GHOST CHAT BOX</b><span>YOUR INTELLIGENCE. YOUR SPACE.</span></div></div>
-      <form class="auth-card" id="authForm">
-        <div class="auth-kicker">PRIVATE ACCESS</div><h2 id="authHeading">WELCOME BACK</h2>
+      <div class="auth-card" id="authCard">
+        <div class="auth-kicker" id="authKicker">PRIVATE ACCESS</div><h2 id="authHeading">WELCOME BACK</h2>
         <p id="authDescription">Sign in to access your private conversations and personal GHOST memory.</p>
-        <label for="authEmail">EMAIL ADDRESS</label><input id="authEmail" type="email" autocomplete="email" required placeholder="you@example.com"/>
-        <label for="authPassword">PASSWORD</label><input id="authPassword" type="password" autocomplete="current-password" minlength="6" required placeholder="Your password"/>
-        <button class="auth-submit" id="authSubmit" type="submit">LOG IN</button>
-        <div class="auth-note" id="authNote" aria-live="polite"></div>
+
+        <div class="oauth-group" id="oauthGroup">
+          <button class="oauth-btn" type="button" data-provider="google"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.27c0-.85-.08-1.67-.22-2.45H12v4.64h6.46a5.52 5.52 0 0 1-2.4 3.62v3h3.88c2.27-2.09 3.56-5.17 3.56-8.81z"/><path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.94-2.91l-3.88-3c-1.07.72-2.45 1.15-4.06 1.15-3.13 0-5.78-2.11-6.73-4.96H1.27v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.27 14.28A7.2 7.2 0 0 1 4.9 12c0-.79.14-1.56.37-2.28v-3.1H1.27A12 12 0 0 0 0 12c0 1.94.46 3.77 1.27 5.38l4-3.1z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.43-3.43C17.95 1.19 15.24 0 12 0A12 12 0 0 0 1.27 6.62l4 3.1C6.22 6.86 8.87 4.75 12 4.75z"/></svg><span>Continue with Google</span></button>
+          <button class="oauth-btn" type="button" data-provider="apple"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.37 1.43c0 1.14-.46 2.22-1.2 3-.8.86-2.1 1.52-3.16 1.43-.14-1.1.4-2.25 1.13-3 .82-.85 2.2-1.48 3.23-1.43zM20.5 17.1c-.55 1.27-.82 1.84-1.53 2.96-1 1.57-2.4 3.52-4.14 3.53-1.55.02-1.95-1-4.05-.99-2.1.01-2.54 1.01-4.09.99-1.74-.02-3.07-1.78-4.07-3.35C-.2 15.9-.5 10.8 1.9 8.1c1.1-1.24 2.8-2 4.4-2 1.64 0 2.67 1 4.02 1 1.31 0 2.11-1 4-1 1.43 0 2.95.78 4.04 2.12-3.55 1.95-2.98 7.03.14 8.88z"/></svg><span>Continue with Apple</span></button>
+          <button class="oauth-btn" type="button" data-provider="github"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 .5A11.5 11.5 0 0 0 .5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2c-3.2.7-3.87-1.37-3.87-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.04-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.78 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.42-2.7 5.4-5.27 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12 11.5 11.5 0 0 0 12 .5z"/></svg><span>Continue with GitHub</span></button>
+        </div>
+        <div class="auth-divider" id="authDivider"><span>OR USE EMAIL</span></div>
+
+        <form id="authForm" novalidate>
+          <div class="auth-field" id="emailField">
+            <label for="authEmail">EMAIL ADDRESS</label>
+            <input id="authEmail" type="email" inputmode="email" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" required placeholder="you@example.com"/>
+          </div>
+          <div class="auth-field" id="passwordField">
+            <label for="authPassword" id="passwordLabel">PASSWORD</label>
+            <div class="pw-wrap"><input id="authPassword" type="password" autocomplete="current-password" minlength="8" required placeholder="Your password"/><button class="pw-toggle" id="pwToggle" type="button" aria-label="Show password" aria-pressed="false">SHOW</button></div>
+          </div>
+          <div class="auth-field" id="confirmField" hidden>
+            <label for="authConfirm">CONFIRM PASSWORD</label>
+            <div class="pw-wrap"><input id="authConfirm" type="password" autocomplete="new-password" minlength="8" placeholder="Repeat your password"/></div>
+          </div>
+          <button class="auth-link" id="forgotLink" type="button">FORGOT PASSWORD?</button>
+          <button class="auth-submit" id="authSubmit" type="submit">LOG IN</button>
+          <div class="auth-note" id="authNote" role="status" aria-live="polite"></div>
+        </form>
+
+        <div class="auth-verify" id="authVerify" hidden>
+          <div class="verify-icon" aria-hidden="true">✉</div>
+          <p id="verifyText">We sent a verification link to your email.</p>
+          <button class="auth-submit" id="resendButton" type="button">RESEND VERIFICATION EMAIL</button>
+          <div class="auth-note" id="verifyNote" role="status" aria-live="polite"></div>
+        </div>
+
         <button class="auth-toggle" id="authToggle" type="button">CREATE AN ACCOUNT</button>
-      </form>
+      </div>
     </div>
   </section>
   <div class="app-shell">
@@ -65,11 +94,13 @@
 
       <button class="nav-item" id="focusMode"><span>⌘</span> Focus mode</button>
 
+      <button class="nav-item" id="memoryNav" type="button"><span>◇</span> Personal memory</button>
+
       <div class="side-label history-label">RECENT THREADS</div>
 
       <div class="history" id="history"><div class="empty-history">Your conversations will appear here.</div></div>
 
-      <div class="sidebar-bottom"><div class="status"><i></i><span id="connectionText">Checking connection</span></div><div class="profile"><div class="avatar">N</div><div class="profile-info"><b>GHOST CHAT BOX</b><small id="accountEmail">SIGNED OUT</small></div><button id="logoutButton" title="Log out" type="button">↪</button></div></div>
+      <div class="sidebar-bottom"><div class="status"><i></i><span id="connectionText">Checking connection</span></div><div class="profile"><div class="avatar" id="accountAvatar">N</div><div class="profile-info"><b id="accountName">GHOST CHAT BOX</b><small id="accountEmail">SIGNED OUT</small></div><button id="logoutButton" title="Log out" aria-label="Log out" type="button">↪</button></div></div>
 
     </aside>
 
@@ -123,7 +154,26 @@
 
   </div>
 
-  <div class="toast" id="toast"></div>
+    <div class="modal" id="memoryModal" role="dialog" aria-modal="true" aria-labelledby="memoryTitle" hidden>
+    <div class="modal-card">
+      <div class="modal-head"><h3 id="memoryTitle">PERSONAL MEMORY</h3><button class="modal-x" type="button" data-close aria-label="Close">✕</button></div>
+      <p class="modal-copy">Things GHOST remembers about you. They sync across your devices and are private to your account. You can also type <b>remember …</b> in any chat.</p>
+      <form class="memory-add" id="memoryForm"><input id="memoryInput" type="text" maxlength="1000" placeholder="Add something to remember…" autocomplete="off" aria-label="New memory"/><button type="submit">ADD</button></form>
+      <div class="memory-list" id="memoryList"></div>
+    </div>
+  </div>
+
+  <div class="modal" id="logoutModal" role="dialog" aria-modal="true" aria-labelledby="logoutTitle" hidden>
+    <div class="modal-card small">
+      <div class="modal-head"><h3 id="logoutTitle">LOG OUT</h3><button class="modal-x" type="button" data-close aria-label="Close">✕</button></div>
+      <p class="modal-copy">Your conversations and memories stay safely in your account. Local data on this device is cleared.</p>
+      <button class="modal-btn primary" id="logoutHere" type="button">LOG OUT OF THIS DEVICE</button>
+      <button class="modal-btn" id="logoutEverywhere" type="button">LOG OUT OF ALL DEVICES</button>
+      <button class="modal-btn ghost" type="button" data-close>CANCEL</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="/app.js"></script>
 
