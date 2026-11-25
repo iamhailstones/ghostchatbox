@@ -125,7 +125,7 @@ module.exports = async (req, res) => {
     if (!response.ok) {
       console.error("Groq API error:", data);
       return res.status(502).json({
-        error: "The AI is unavailable right now."
+        error: "Chat me later, a lil bit busy right now."
       });
     }
 
