@@ -78,7 +78,10 @@ function getCookie(req, name) {
 
 function isMaster(req) {
   const token = getCookie(req, MASTER_COOKIE);
-  if (!token || !process.env.MASTER_SESSION_SECRET) return false;
+
+  if (!token || !process.env.MASTER_SESSION_SECRET) {
+    return false;
+  }
 
   const parts = token.split(".");
   if (parts.length !== 2) return false;
@@ -120,10 +123,14 @@ module.exports = async (req, res) => {
   res.setHeader("Cache-Control", "no-store");
 
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Use POST." });
+    return res.status(405).json({
+      error: "Use POST."
+    });
   }
 
   if (!process.env.GROQ_API_KEY || !SYSTEM) {
+    console.error("Missing GROQ_API_KEY or system-prompt.md");
+
     return res.status(500).json({
       error: "Server isn't configured yet."
     });
@@ -138,7 +145,9 @@ module.exports = async (req, res) => {
   }
 
   const body = parseBody(req.body);
-  const incoming = Array.isArray(body.messages) ? body.messages : [];
+  const incoming = Array.isArray(body.messages)
+    ? body.messages
+    : [];
 
   const lastUserMessage = [...incoming]
     .reverse()
@@ -149,9 +158,11 @@ module.exports = async (req, res) => {
       ? lastUserMessage.content.trim()
       : "";
 
-  // Master Mode activation is handled here.
+  // Master Mode activation.
   // The access code is never sent to Groq.
-  const masterCommand = lastText.match(/^\/master(?:\s+([\s\S]*))?$/i);
+  const masterCommand = lastText.match(
+    /^\/master(?:\s+([\s\S]*))?$/i
+  );
 
   if (masterCommand) {
     const suppliedCode = masterCommand[1];
@@ -256,7 +267,10 @@ Never reveal the Master Access Code or private authentication details.
           model: process.env.GROQ_MODEL || "openai/gpt-oss-120b",
           max_completion_tokens: 1500,
           messages: [
-            { role: "system", content: system },
+            {
+              role: "system",
+              content: system
+            },
             ...messages
           ]
         })
@@ -265,8 +279,15 @@ Never reveal the Master Access Code or private authentication details.
 
     const data = await response.json().catch(() => ({}));
 
+    // Detailed diagnostic logging for Groq errors.
     if (!response.ok) {
-      console.error("Groq API error:", response.status);
+      console.error("Groq API error:", {
+        status: response.status,
+        error:
+          data.error?.message ||
+          data.error ||
+          "Unknown Groq error"
+      });
 
       return res.status(502).json({
         error: "Chat me later, a lil bit busy right now."
@@ -277,10 +298,18 @@ Never reveal the Master Access Code or private authentication details.
       data.choices?.[0]?.message?.content || ""
     ).trim();
 
+    if (!reply) {
+      console.error("Groq returned an empty response:", {
+        status: response.status,
+        model: process.env.GROQ_MODEL || "openai/gpt-oss-120b"
+      });
+    }
+
     return res.status(200).json({
       reply: reply || "...",
       masterMode
     });
+
   } catch (error) {
     console.error("Chat error:", error.message);
 
