@@ -18,7 +18,7 @@ const hits = new Map();
 const masterAttempts = new Map();
 
 const MASTER_COOKIE = "gcb_master";
-const MASTER_SESSION_MS = 12 * 60 * 60 * 1000;
+const MASTER_SESSION_MS = 7 * 24 * 60 * 60 * 1000;
 
 function getIP(req) {
   return String(req.headers["x-forwarded-for"] || "anon")
