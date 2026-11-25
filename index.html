@@ -86,6 +86,12 @@ const $=s=>document.querySelector(s),app=$("#app"),feed=$("#feed"),inp=$("#in"),
 let hist=[],busy=false,rec=null,speaking=null;
 try{hist=JSON.parse(sessionStorage.getItem("gcb")||"[]")}catch(e){}
 const save=()=>{try{sessionStorage.setItem("gcb",JSON.stringify(hist.slice(-30)))}catch(e){}};
+hist=hist.filter(m=>!(
+ m&&m.role==="user"&&
+ typeof m.content==="string"&&
+ /^\/master(?:\s|$)/i.test(m.content.trim())
+));
+save();
 const esc=s=>s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmt=s=>esc(s).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/(https:\/\/[^\s<]*[^\s<.,;:!?)])/g,'<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>').replace(/\n/g,"<br>");
 const down=()=>requestAnimationFrame(()=>{feed.scrollTop=feed.scrollHeight});
