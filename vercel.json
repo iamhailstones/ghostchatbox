@@ -1,3 +1,8 @@
 {
-  "functions": { "api/chat.js": { "includeFiles": "system-prompt.md", "maxDuration": 30 } }
+  "functions": {
+    "api/chat.js": {
+      "includeFiles": "system-prompt.md",
+      "maxDuration": 60
+    }
+  }
 }
