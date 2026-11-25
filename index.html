@@ -135,6 +135,39 @@ async function send(text,clip){
  catch(e){ty.remove();hist.pop();save();botRow("Couldn’t get an answer. "+(e&&e.message&&!/fetch|network/i.test(e.message)?e.message:"Check your connection and try again."),true);if(!clip){inp.value=text;grow()}}
  finally{busy=false;grow();if(matchMedia("(pointer:fine)").matches)inp.focus()}}
 
+ async function activateMaster(command){
+ busy=true;
+ go.disabled=true;
+
+ try{
+   const r=await fetch("/api/chat",{
+     method:"POST",
+     credentials:"same-origin",
+     headers:{"Content-Type":"application/json"},
+     body:JSON.stringify({
+       messages:[{role:"user",content:command}]
+     })
+   });
+
+   const d=await r.json().catch(()=>({}));
+
+   if(!r.ok) throw new Error(d.error||"Master Mode activation failed.");
+
+   if(d.masterMode!==true){
+     throw new Error("Master Mode could not be verified.");
+   }
+
+   botRow(d.reply||"Oh, Master! It's you. What are we doing today?");
+   toast("Master Mode activated.");
+ }catch(e){
+   botRow(e.message||"Master Mode activation failed.",true);
+ }finally{
+   busy=false;
+   grow();
+   if(matchMedia("(pointer:fine)").matches)inp.focus();
+ }
+} 
+
 // restore this session's chat
 if(hist.length){const h=$("#hero");if(h)h.remove();hist.forEach(m=>m.role==="user"?row("u",esc(m.content).replace(/\n/g,"<br>")):botRow(m.content))}
 document.querySelectorAll(".chips button").forEach(b=>b.onclick=()=>send(b.textContent));
