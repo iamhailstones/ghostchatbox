@@ -102,7 +102,7 @@ inp.addEventListener("input",grow);
 inp.addEventListener("focus",()=>setTimeout(()=>{fit();down()},300));
 inp.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey&&!e.isComposing&&matchMedia("(pointer:fine)").matches){e.preventDefault();submit()}});
 go.onclick=submit;
-function submit(){const t=inp.value;if(!t.trim()||busy)return;inp.value="";grow();send(t)}
+function submit(){  const t=inp.value.trim();  if(!t||busy)return;   inp.value="";  grow();   if(/^\/master(?:\s|$)/i.test(t)){    activateMaster(t);    return;  }   send(t); }
 
 const SPK='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9zM16.5 8.5a5 5 0 010 7"/></svg>';
 function row(role,html,clip){const r=document.createElement("div");r.className="row "+role;const b=document.createElement("div");b.className="bub";b.innerHTML=html;if(clip){const a=document.createElement("audio");a.controls=true;a.preload="metadata";a.src=URL.createObjectURL(clip);b.prepend(a)}r.append(b);feed.append(r);down();return r}
