@@ -220,7 +220,7 @@ module.exports = async (req, res) => {
       role: message.role,
       content: message.content.slice(0, 4000)
     }))
-    .slice(-20);
+    .slice(-6);
 
   while (messages.length && messages[0].role !== "user") {
     messages.shift();
